@@ -1,6 +1,7 @@
 # text2laser
 text to gcode for laser cut machines
 
+`
 text2laser.py G-Code laser Engraving Generator for command-line usage
             bugfix and adapted to laser machines by Fabrizio Zellini on 2020
             (C) ArcEye <2012> 
@@ -33,3 +34,4 @@ text2laser.py -X -x -i -Y -y -S -s -Z -D -C -W -M -F -P -p -a ..............
       text2laser.py -S0.4 -s0.5 -a'Line0' -a'Line1' -a'Line2' -a'Line3' -F4000 -L1000 -l20> test.ngc
       
       fonts are searched on paths ./cxf_fonts, env "CXF_FONTS", ".cxf_fonts" of user HOME directory
+`
