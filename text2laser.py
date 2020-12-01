@@ -175,6 +175,7 @@ def parse(filein):
     num_cmds = 0
     line_num = 0
     xmax, ymax = 0, 0
+
     for text in filein:
         # format for a typical letter (lowercase r):
         ##comment, with a blank line after it
@@ -196,13 +197,24 @@ def parse(filein):
                 print "; warning: discrepancy in number of commands %s, line %s, %s != %s " % (
                 fontfile, line_num, num_cmds, cmds_read)
 
-        new_cmd = re.match('^\[(.*)\]\s(\d+)', text)
+        version_ = re.match('^# Version:\s+([\d\.]+)', text)
+        if version_:
+            version = version_.group(1)
+            if version.split('.')[0] != '1':
+                print "; Unsupported font version (%s)" % (fontfile)
+                sys.exit(1)
+
+        new_cmd = re.match('^\[(.+?)\]\s+(\d+)', text)
         if new_cmd:  # new character
             key = new_cmd.group(1)
             num_cmds = int(new_cmd.group(2))  # for debug
             cmds_read = 0
             stroke_list = []
             xmax, ymax = 0, 0
+
+#        new_cmd = re.match('^\[(\d+)\]\s+(.)', text)
+#        if new_cmd:  # new character
+#            ccode = int(new_cmd.group(1), 16)
 
         line_cmd = re.match('^L (.*)', text)
         if line_cmd:
@@ -246,7 +258,7 @@ def parse(filein):
             coords = [float(n) for n in coords.split(',')]
             xcenter, ycenter, radius, end_angle, start_angle = coords
             # since font defn has arcs as ccw, we need some font foo
-            if (end_angle < start_angle):
+            if end_angle < start_angle:
                 start_angle -= 360.0
             # approximate arc with line seg every 20 degrees
             segs = int((end_angle - start_angle) / 20) + 1
@@ -285,9 +297,6 @@ def get_ymax():
 
 
 # =======================================================================
-
-
-# =======================================================================
 def sanitize(string):
     retval = ''
     good = ' ~!@#$%^&*_+=-{}[]|\:;"<>,./?'
@@ -297,20 +306,6 @@ def sanitize(string):
         else:
             retval += (' 0x%02X ' % ord(char))
     return retval
-
-
-# =======================================================================
-# routine takes an x and a y in raw internal format
-# x and y scales are applied and then x,y pt is rotated by angle
-# Returns new x,y tuple
-def Rotn(x, y, xscale, yscale, angle):
-    xx = x * xscale
-    yy = y * yscale
-    rad = sqrt(xx * xx + yy * yy)
-    theta = atan2(yy, xx)
-    newx = rad * cos(theta + angle * Deg2Rad)
-    newy = rad * sin(theta + angle * Deg2Rad)
-    return newx, newy
 
 
 def laser_power(pwr):
@@ -334,8 +329,8 @@ def o9000(p1, p2, p3):
 
     return out
 
-def code(arg, visit, last):
 
+def code(arg, visit, last):
     global p
     global String
 
@@ -344,8 +339,6 @@ def code(arg, visit, last):
     str1 = ""
     # erase old gcode as needed
     gcode = []
-
-    oldx = oldy = -99990.0
 
     if visit != 0:
         # all we need is new X and Y for subsequent lines
